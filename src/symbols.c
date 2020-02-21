@@ -710,10 +710,13 @@ static void add_top_level_items(GeanyDocument *doc)
 		case GEANY_FILETYPES_VERILOG:
 		{
 			tag_list_add_groups(tag_store,
-				&(tv_iters.tag_type), _("Events"), ICON_MACRO,
+				&(tv_iters.tag_externvar), _("Events"), ICON_MACRO,
+				&(tv_iters.tag_type), _("Typedefs / Enums"), ICON_STRUCT,
 				&(tv_iters.tag_class), _("Modules"), ICON_CLASS,
 				&(tv_iters.tag_function), _("Functions / Tasks"), ICON_METHOD,
 				&(tv_iters.tag_variable), _("Variables"), ICON_VAR,
+				&(tv_iters.tag_struct), _("Structs"), ICON_STRUCT,
+				&(tv_iters.tag_macro), _("Macros"), ICON_MACRO,
 				&(tv_iters.tag_other), _("Other"), ICON_OTHER,
 				NULL);
 			break;

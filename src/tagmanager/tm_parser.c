@@ -425,13 +425,20 @@ static TMParserMapEntry map_ABC[] = {
 
 static TMParserMapEntry map_VERILOG[] = {
 	{'c', tm_tag_variable_t},
-	{'e', tm_tag_typedef_t},
+	{'a', tm_tag_macro_t},
+	{'e', tm_tag_externvar_t},
 	{'f', tm_tag_function_t},
 	{'m', tm_tag_class_t},
 	{'n', tm_tag_variable_t},
 	{'p', tm_tag_variable_t},
 	{'r', tm_tag_variable_t},
 	{'t', tm_tag_function_t},
+	{'l', tm_tag_variable_t},
+	{'w', tm_tag_enum_t},
+	{'d', tm_tag_typedef_t},
+	{'s', tm_tag_struct_t},
+	{'u', tm_tag_union_t},
+	{'o', tm_tag_other_t}
 };
 
 static TMParserMapEntry map_R[] = {

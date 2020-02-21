@@ -495,6 +495,21 @@ static void init_default_kb(void)
 		0, 0, "edit_sendtocmd8", _("Send to Custom Command 8"), NULL);
 	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD9, NULL,
 		0, 0, "edit_sendtocmd9", _("Send to Custom Command 9"), NULL);
+
+	
+	/* 10..20 keybindings without default assignments */
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD10, NULL, 0, 0, "edit_sendtocmd10", _("Send to Custom Command 10"), NULL);
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD11, NULL, 0, 0, "edit_sendtocmd11", _("Send to Custom Command 11"), NULL);
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD12, NULL, 0, 0, "edit_sendtocmd12", _("Send to Custom Command 12"), NULL);
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD13, NULL, 0, 0, "edit_sendtocmd13", _("Send to Custom Command 13"), NULL);
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD14, NULL, 0, 0, "edit_sendtocmd14", _("Send to Custom Command 14"), NULL);
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD15, NULL, 0, 0, "edit_sendtocmd15", _("Send to Custom Command 15"), NULL);
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD16, NULL, 0, 0, "edit_sendtocmd16", _("Send to Custom Command 16"), NULL);
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD17, NULL, 0, 0, "edit_sendtocmd17", _("Send to Custom Command 17"), NULL);
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD18, NULL, 0, 0, "edit_sendtocmd18", _("Send to Custom Command 18"), NULL);
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD19, NULL, 0, 0, "edit_sendtocmd19", _("Send to Custom Command 19"), NULL);
+	add_kb(group, GEANY_KEYS_FORMAT_SENDTOCMD20, NULL, 0, 0, "edit_sendtocmd20", _("Send to Custom Command 20"), NULL);
+	
 	/* may fit better in editor group */
 	add_kb(group, GEANY_KEYS_FORMAT_SENDTOVTE, NULL,
 		0, 0, "edit_sendtovte", _("_Send Selection to Terminal"), "send_selection_to_vte1");
@@ -2399,6 +2414,50 @@ static void join_paragraph(GeanyEditor *editor)
 	sci_end_undo_action(sci);
 }
 
+// GEANY_KEYS_FORMAT_SENDTOCMD1..20 dispatcher
+static void kb_execute_sendtocmd(guint key_id, GeanyDocument *doc){
+	if(!ui_prefs.custom_commands){
+		return;
+	}
+	gint offset; // calculating sendtocmd keybinding offset
+	{
+		guint key_ids[] = {
+			GEANY_KEYS_FORMAT_SENDTOCMD1,
+			GEANY_KEYS_FORMAT_SENDTOCMD2,
+			GEANY_KEYS_FORMAT_SENDTOCMD3,
+			GEANY_KEYS_FORMAT_SENDTOCMD4,
+			GEANY_KEYS_FORMAT_SENDTOCMD5,
+			GEANY_KEYS_FORMAT_SENDTOCMD6,
+			GEANY_KEYS_FORMAT_SENDTOCMD7,
+			GEANY_KEYS_FORMAT_SENDTOCMD8,
+			GEANY_KEYS_FORMAT_SENDTOCMD9,
+			GEANY_KEYS_FORMAT_SENDTOCMD10,
+			GEANY_KEYS_FORMAT_SENDTOCMD11,
+			GEANY_KEYS_FORMAT_SENDTOCMD12,
+			GEANY_KEYS_FORMAT_SENDTOCMD13,
+			GEANY_KEYS_FORMAT_SENDTOCMD14,
+			GEANY_KEYS_FORMAT_SENDTOCMD15,
+			GEANY_KEYS_FORMAT_SENDTOCMD16,
+			GEANY_KEYS_FORMAT_SENDTOCMD17,
+			GEANY_KEYS_FORMAT_SENDTOCMD18,
+			GEANY_KEYS_FORMAT_SENDTOCMD19,
+			GEANY_KEYS_FORMAT_SENDTOCMD20
+		}; // available codes
+		offset = -1;
+		gint i;
+		for(i = 0; i < sizeof(key_ids)/sizeof(key_ids[0]); i += 1){
+			if(key_id == key_ids[i]){
+				offset = i;
+				break;
+			}
+		}
+		g_assert(offset != -1); // something must have been found
+	}
+	if(g_strv_length(ui_prefs.custom_commands) > offset) {
+		tools_execute_custom_command(doc, ui_prefs.custom_commands[offset]);
+	}
+}
+
 
 /* common function for format keybindings, only valid when scintilla has focus. */
 static gboolean cb_func_format_action(guint key_id)
@@ -2440,40 +2499,26 @@ static gboolean cb_func_format_action(guint key_id)
 			on_toggle_case1_activate(NULL, NULL);
 			break;
 		case GEANY_KEYS_FORMAT_SENDTOCMD1:
-			if (ui_prefs.custom_commands && g_strv_length(ui_prefs.custom_commands) > 0)
-				tools_execute_custom_command(doc, ui_prefs.custom_commands[0]);
-			break;
 		case GEANY_KEYS_FORMAT_SENDTOCMD2:
-			if (ui_prefs.custom_commands && g_strv_length(ui_prefs.custom_commands) > 1)
-				tools_execute_custom_command(doc, ui_prefs.custom_commands[1]);
-			break;
 		case GEANY_KEYS_FORMAT_SENDTOCMD3:
-			if (ui_prefs.custom_commands && g_strv_length(ui_prefs.custom_commands) > 2)
-				tools_execute_custom_command(doc, ui_prefs.custom_commands[2]);
-			break;
 		case GEANY_KEYS_FORMAT_SENDTOCMD4:
-			if (ui_prefs.custom_commands && g_strv_length(ui_prefs.custom_commands) > 3)
-				tools_execute_custom_command(doc, ui_prefs.custom_commands[3]);
-			break;
 		case GEANY_KEYS_FORMAT_SENDTOCMD5:
-			if (ui_prefs.custom_commands && g_strv_length(ui_prefs.custom_commands) > 4)
-				tools_execute_custom_command(doc, ui_prefs.custom_commands[4]);
-			break;
 		case GEANY_KEYS_FORMAT_SENDTOCMD6:
-			if (ui_prefs.custom_commands && g_strv_length(ui_prefs.custom_commands) > 5)
-				tools_execute_custom_command(doc, ui_prefs.custom_commands[5]);
-			break;
 		case GEANY_KEYS_FORMAT_SENDTOCMD7:
-			if (ui_prefs.custom_commands && g_strv_length(ui_prefs.custom_commands) > 6)
-				tools_execute_custom_command(doc, ui_prefs.custom_commands[6]);
-			break;
 		case GEANY_KEYS_FORMAT_SENDTOCMD8:
-			if (ui_prefs.custom_commands && g_strv_length(ui_prefs.custom_commands) > 7)
-				tools_execute_custom_command(doc, ui_prefs.custom_commands[7]);
-			break;
 		case GEANY_KEYS_FORMAT_SENDTOCMD9:
-			if (ui_prefs.custom_commands && g_strv_length(ui_prefs.custom_commands) > 8)
-				tools_execute_custom_command(doc, ui_prefs.custom_commands[8]);
+		case GEANY_KEYS_FORMAT_SENDTOCMD10:
+		case GEANY_KEYS_FORMAT_SENDTOCMD11:
+		case GEANY_KEYS_FORMAT_SENDTOCMD12:
+		case GEANY_KEYS_FORMAT_SENDTOCMD13:
+		case GEANY_KEYS_FORMAT_SENDTOCMD14:
+		case GEANY_KEYS_FORMAT_SENDTOCMD15:
+		case GEANY_KEYS_FORMAT_SENDTOCMD16:
+		case GEANY_KEYS_FORMAT_SENDTOCMD17:
+		case GEANY_KEYS_FORMAT_SENDTOCMD18:
+		case GEANY_KEYS_FORMAT_SENDTOCMD19:
+		case GEANY_KEYS_FORMAT_SENDTOCMD20:
+			kb_execute_sendtocmd(key_id, doc);
 			break;
 		case GEANY_KEYS_FORMAT_SENDTOVTE:
 			on_send_selection_to_vte1_activate(NULL, NULL);

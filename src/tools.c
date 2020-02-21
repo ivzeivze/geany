@@ -547,17 +547,28 @@ static void cc_insert_custom_command_items(GtkMenu *me, const gchar *label, cons
 	GtkWidget *item;
 	gint key_idx = -1;
 
-	switch (idx)
+	switch (idx+1)
 	{
-		case 0: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD1; break;
-		case 1: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD2; break;
-		case 2: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD3; break;
-		case 3: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD4; break;
-		case 4: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD5; break;
-		case 5: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD6; break;
-		case 6: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD7; break;
-		case 7: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD8; break;
-		case 8: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD9; break;
+		case  1: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD1; break;
+		case  2: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD2; break;
+		case  3: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD3; break;
+		case  4: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD4; break;
+		case  5: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD5; break;
+		case  6: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD6; break;
+		case  7: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD7; break;
+		case  8: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD8; break;
+		case  9: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD9; break;
+		case 10: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD10; break;
+		case 11: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD11; break;
+		case 12: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD12; break;
+		case 13: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD13; break;
+		case 14: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD14; break;
+		case 15: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD15; break;
+		case 16: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD16; break;
+		case 17: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD17; break;
+		case 18: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD18; break;
+		case 19: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD19; break;
+		case 20: key_idx = GEANY_KEYS_FORMAT_SENDTOCMD20; break;
 	}
 
 	item = gtk_menu_item_new_with_label(label);

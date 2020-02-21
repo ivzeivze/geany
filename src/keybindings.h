@@ -266,12 +266,24 @@ enum GeanyKeyBindingID
 	GEANY_KEYS_DOCUMENT_CLONE,					/**< Keybinding. */
 	GEANY_KEYS_FILE_QUIT,						/**< Keybinding. */
 	GEANY_KEYS_FILE_PROPERTIES,					/**< Keybinding. */
+	/* 4..9,0 sendto keybindings */
 	GEANY_KEYS_FORMAT_SENDTOCMD4,				/**< Keybinding. */
 	GEANY_KEYS_FORMAT_SENDTOCMD5,				/**< Keybinding. */
 	GEANY_KEYS_FORMAT_SENDTOCMD6,				/**< Keybinding. */
 	GEANY_KEYS_FORMAT_SENDTOCMD7,				/**< Keybinding. */
 	GEANY_KEYS_FORMAT_SENDTOCMD8,				/**< Keybinding. */
 	GEANY_KEYS_FORMAT_SENDTOCMD9,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD10,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD11,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD12,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD13,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD14,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD15,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD16,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD17,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD18,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD19,				/**< Keybinding. */
+	GEANY_KEYS_FORMAT_SENDTOCMD20,				/**< Keybinding. */
 	GEANY_KEYS_EDITOR_DELETELINETOBEGINNING,	/**< Keybinding. */
 	GEANY_KEYS_DOCUMENT_STRIPTRAILINGSPACES,	/**< Keybinding.
 												 * @since 1.34 (API 238) */
