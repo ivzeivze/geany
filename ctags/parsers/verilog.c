@@ -1,12 +1,12 @@
 /*
 *   Copyright (c) 2003, Darren Hiebert
-* 
+*
 *   This source code is released for free distribution under the terms of the
 *   GNU General Public License version 2 or (at your option) any later version.
-* 
+*
 *   This module contains functions for generating tags for the Verilog HDL
 *   (Hardware Description Language).
-* 
+*
 *   Language definition documents:
 *       http://www.eg.bucknell.edu/~cs320/verilog/verilog-manual.html
 *       http://www.sutherland-hdl.com/on-line_ref_guide/vlog_ref_top.html
@@ -266,6 +266,107 @@ static bool readIdentifier (vString *const name, int c)
 }
 
 
+/**
+ * An algorithm for detection of tags in different circumstances,
+ * involving a list of tag[=something] with  some separators and an
+ * escape condition.
+ */
+static void tagCommonAlgoNG(
+	vString *const name,
+	// Exit trigger brace sensitivity:
+	bool sens_b,   // () simple
+	bool sens_cb,  // {} curved
+	bool sens_sqb, // [] square
+	// Valid separators
+	bool sep_comma,     // ','
+	bool sep_semicolon, // ';'
+	// Stateless terminator char
+	int stc, // negative value disables the feature
+	//
+	// Tag generation.
+	bool lkwd_ena, // Enable keyword lookup before tag push
+	verilogKind gen_tag_kind // generate tags of this kind
+){
+	vStringClear(name);
+	//
+	int c;
+	int blvl = 0, cblvl = 0, sqblvl = 0;
+	bool eq_seen = false;
+	bool stc_triggered;
+	do{
+		c = vGetc();
+		//
+		if(c == '(') blvl += 1;
+		if(c == ')') blvl -= 1;
+		//
+		if(c == '{') cblvl += 1;
+		if(c == '}') cblvl -= 1;
+		//
+		if(c == '[') sqblvl += 1;
+		if(c == ']') sqblvl -= 1;
+		//
+		// Check for brace level underrun. Either it triggers an exit
+		// condition, or it is a typo mistake to be corrected.
+		if(blvl < 0){
+			if(sens_b) {
+				break;
+			} else {
+				blvl = 0;
+			}
+		}
+		if(cblvl < 0){
+			if(sens_cb) {
+				break;
+			} else {
+				cblvl = 0;
+			}
+		}
+		if(sqblvl < 0){
+			if(sens_sqb) {
+				break;
+			} else {
+				sqblvl = 0;
+			}
+		}
+		// as negative values filtered out, this is a valid check for
+		// being inside a level of braces
+		bool inside_inner_braces = blvl || cblvl || sqblvl ;
+
+		bool sepchar_detected =
+			c == ',' && sep_comma ||
+			c == ';' && sep_semicolon;
+
+		if(!inside_inner_braces) {
+			if(c == '=') {
+				eq_seen = true;
+			} else if (sepchar_detected) {
+				eq_seen = false;
+			}
+		}
+
+		stc_triggered = (stc < 0) ? false : (stc == c);
+
+		if(inside_inner_braces || isspace(c) || sepchar_detected || eq_seen || stc_triggered) {
+			// Separator event trigger: pushing what has been
+			// accumulated, if any
+			if(name -> length > 0) {
+				if(isAGoodIdentifier(name)){
+					bool tag_kind_check_passed = true;
+					if(lkwd_ena){
+						const verilogKind kind1 = (verilogKind) lookupKeyword (vStringValue (name), Lang_verilog);
+						tag_kind_check_passed = kind1 == K_UNDEFINED;
+					}
+					if(tag_kind_check_passed) makeSimpleTag(name, gen_tag_kind);
+				}
+				vStringClear(name);
+			}
+		} else {
+			// Collecting characters
+			vStringPut (name, c);
+		}
+	} while ( !stc_triggered );
+}
+
 
 
 /**
@@ -273,7 +374,7 @@ static bool readIdentifier (vString *const name, int c)
  */
 static void tagEnum(vString *const name, bool is_typedefed){
 	int c;
-	
+
 	while(1){
 		c = vGetc();
 		if(c == ';') {
@@ -285,77 +386,40 @@ static void tagEnum(vString *const name, bool is_typedefed){
 		}
 		// skipping through symbols
 	}
-	
-	
+
 	// investigating the {} pair
-	{
-		vStringClear(name);
+	tagCommonAlgoNG (
+		name,
 		//
-		unsigned int blvl = 0, cblvl = 1, sqblvl = 0;
-		bool eq_seen = false;
-		while(1){
-			c = vGetc();
-			//
-			if(c == '(') blvl += 1;
-			if(c == ')') blvl -= 1;
-			//
-			if(c == '{') cblvl += 1;
-			if(c == '}') cblvl -= 1;
-			//
-			if(c == '[') sqblvl += 1;
-			if(c == ']') sqblvl -= 1;
-			//
-			if(cblvl == 0) break;
-			//
-			bool inside_inner_braces = blvl > 0 || cblvl > 1 || sqblvl > 0;
-			
-			if(!inside_inner_braces) {
-				if(c == '=') {
-					eq_seen = true;
-				} else if (c == ',') {
-					eq_seen = false;
-				}
-			}
-			
-			
-			if(inside_inner_braces || isspace(c) || c == ',' || eq_seen) {
-				// Separator event trigger: pushing what has been
-				// accumulated, if any
-				if(name -> length > 0) {
-					{ // push tag
-						if(isAGoodIdentifier(name)){
-							makeSimpleTag(name, K_CONSTANT);
-						}
-					}
-					vStringClear(name);
-				}
-			} else {
-				// Collecting characters
-				vStringPut (name, c);
-			}
-		}
-	}
-	
+		false,     // ()
+		true,      // {}
+		false,     // []
+		//
+		true,      // ','
+		false,     // ';'
+		//
+		-1,        // stc
+		//
+		false,     // lkwd_ena
+		K_CONSTANT // gen_tag_kind
+	);
+
 	// Detecting enum identifiers (both typedef and variable)
-	{
-		vStringClear(name);
-		bool end_detected;
-		do{
-			c = vGetc();
-			end_detected = (c == ';');
-			//
-			if(isspace(c) || c == ',' || end_detected){
-				if(name -> length > 0) {
-					if(isAGoodIdentifier(name)){
-						makeSimpleTag(name, is_typedefed ? K_ENUM : K_LOGIC);
-					}
-					vStringClear(name);
-				}
-			}else{
-				vStringPut (name, c);
-			}
-		}while(!end_detected);
-	}
+	tagCommonAlgoNG (
+		name,
+		//
+		false,     // ()
+		false,     // {}
+		false,     // []
+		//
+		true,      // ','
+		false,     // ';'
+		//
+		';',       // stc
+		//
+		false,     // lkwd_ena
+		(is_typedefed ? K_ENUM : K_LOGIC) // gen_tag_kind
+	);
 }
 
 
@@ -375,75 +439,38 @@ static void tagStructAndUnion(const verilogKind kind, vString *const name){
 		return; // Garbage detected
 	}
 	// Detecting field list
-	{
-		vStringClear(name);
-		unsigned int blvl = 0, cblvl = 1, sqblvl = 0;
-		bool eq_seen = false;
-		int state = 0;
-		while(1){
-			c = vGetc();
-			//
-			if(c == '(') blvl += 1;
-			if(c == ')') blvl -= 1;
-			//
-			if(c == '{') cblvl += 1;
-			if(c == '}') cblvl -= 1;
-			//
-			if(c == '[') sqblvl += 1;
-			if(c == ']') sqblvl -= 1;
-			
-			if(cblvl == 0) break;
-			
-			//
-			bool inside_inner_braces = blvl > 0 || cblvl > 1 || sqblvl > 0;
-			if(!inside_inner_braces) {
-				if(c == '=') {
-					eq_seen = true;
-				} else if (c == ',' || c == ';') {
-					eq_seen = false;
-				}
-			}
-			
-			if(inside_inner_braces || isspace(c) || c == ',' || c == ';' || eq_seen) {
-				// Separator event trigger: pushing what has been
-				// accumulated, if any
-				if(name -> length > 0) {
-					{ // push tag
-						if(isAGoodIdentifier(name)){
-							const verilogKind kind1 = (verilogKind) lookupKeyword (vStringValue (name), Lang_verilog);
-							if(kind1 == K_UNDEFINED){
-								makeSimpleTag(name, K_CONSTANT);
-							}
-						}
-					}
-					vStringClear(name);
-				}
-			} else {
-				// Collecting characters
-				vStringPut (name, c);
-			}
-		}
-	}
+	tagCommonAlgoNG (
+		name,
+		//
+		false,     // ()
+		true,      // {}
+		false,     // []
+		//
+		true,      // ','
+		true,      // ';'
+		//
+		-1,        // stc
+		//
+		true,      // lkwd_ena
+		K_CONSTANT // gen_tag_kind
+	);
+
 	// Detecting trailing name declarations
-	{
-		vStringClear(name);
-		bool end_detected;
-		do{
-			c = vGetc();
-			end_detected = (c == ';');
-			//
-			if(isspace(c) || c == ',' || end_detected){
-				if(name -> length > 0) {
-					if(isAGoodIdentifier(name)){
-						makeSimpleTag(name, kind);
-					}
-					vStringClear(name);
-				}
-			}else{
-				vStringPut (name, c);
-			}
-		}while(!end_detected);
-	}
+	tagCommonAlgoNG (
+		name,
+		//
+		false,     // ()
+		false,     // {}
+		false,     // []
+		//
+		true,      // ','
+		false,     // ';'
+		//
+		';',       // stc
+		//
+		false,     // lkwd_ena
+		kind       // gen_tag_kind
+	);
 }
 
 
@@ -467,23 +494,9 @@ static void tagTypedef(vString *const name){
 
 
 
-// Checks a sequence of something, that has been found inside #(...)
-// parameter list, checking it to be a good candidate for being a tag
-static void pushParamTagCandidate(vString *const name) {
-	if(! isAGoodIdentifier(name)) {
-		// Does not comply with Verilog identifier naming convention
-		return;
-	}
-	const verilogKind kind = (verilogKind) lookupKeyword (vStringValue (name), Lang_verilog);
-	if(kind != K_UNDEFINED){
-		return; // This is some keyword
-	}
-	
-	makeSimpleTag(name, K_CONSTANT);
-}
 
 /**
- * A parser for ANSI module parameter list in a 
+ * A parser for ANSI module parameter list in a
  * #(
  *    parameter some_type1   IDENTIFIER1 = c_expr1,
  *    parameter [some_type2] IDENTIFIER2 = c_expr2,
@@ -492,117 +505,53 @@ static void pushParamTagCandidate(vString *const name) {
  * style
  * See [1], p.661.
  */
-static void tagModuleParameterListANSI(vString *const name, int c){
-	Assert(c == '(');
-	/* Bracket counters */
-	unsigned int mlvl = 1; // () , this is also used to determine the stop condition
-	unsigned int cblvl = 0, sqblvl = 0; // {}, [], just to skip the contents, if any
-	bool eq_seen = false; // flag, set, when equal "=" is seen, and unset by comma ","
-	vStringClear(name);
-	while(1) {
-		c = vGetc();
-		{ /* Manipulating braces */
-			if(c == '(') mlvl += 1;
-			if(c == ')') mlvl -= 1;
-			//
-			if(c == '{') cblvl += 1;
-			if(c == '}') cblvl -= 1;
-			//
-			if(c == '[') sqblvl += 1;
-			if(c == ']') sqblvl -= 1;
-			//
-			if(mlvl == 0) break;
-		}
-		/* A stream of chars as within #(....) braces as entry events is observable here */
-		bool inside_inner_braces = cblvl > 0 || sqblvl > 0 || mlvl > 1;
-		
-		if(!inside_inner_braces) {
-			if(c == '=') {
-				eq_seen = true;
-			} else if (c == ',') {
-				eq_seen = false;
-			}
-		}
-		
-		if(inside_inner_braces || isspace(c) || c == ',' || eq_seen) {
-			// Separator event trigger: pushing what has been
-			// accumulated, if any
-			if(name -> length > 0) {
-				pushParamTagCandidate(name);
-				vStringClear(name);
-			}
-		} else {
-			// Collecting characters
-			vStringPut (name, c);
-		}
-	}
+static void tagModuleParameterListANSI(vString *const name){
+	tagCommonAlgoNG (
+		name,
+		//
+		true,      // ()
+		false,     // {}
+		false,     // []
+		//
+		true,      // ','
+		false,     // ';'
+		//
+		-1,        // stc
+		//
+		true,      // lkwd_ena
+		K_CONSTANT // gen_tag_kind
+	);
 }
 
 
-// A parser for (...) contents, where module signals are defined
-static void tagModuleSignals(vString *const name, int c){
-	Assert(c == '(');
-	/* Bracket counters */
-	unsigned int mlvl = 1; // () , this is also used to determine the stop condition
-	unsigned int cblvl = 0, sqblvl = 0; // {}, [], just to skip the contents, if any
-	bool eq_seen = false; // flag, set, when equal "=" is seen, and unset by comma ","
-	vStringClear(name);
-	while(1) {
-		c = vGetc();
-		{ /* Manipulating braces */
-			if(c == '(') mlvl += 1;
-			if(c == ')') mlvl -= 1;
-			//
-			if(c == '{') cblvl += 1;
-			if(c == '}') cblvl -= 1;
-			//
-			if(c == '[') sqblvl += 1;
-			if(c == ']') sqblvl -= 1;
-			//
-			if(mlvl == 0) break;
-		}
-		/* A stream of chars as within #(....) braces as entry events is observable here */
-		bool inside_inner_braces = cblvl > 0 || sqblvl > 0 || mlvl > 1;
-		
-		if(!inside_inner_braces) {
-			if(c == '=') {
-				eq_seen = true;
-			} else if (c == ',') {
-				eq_seen = false;
-			}
-		}
-		
-		if(inside_inner_braces || isspace(c) || c == ',' || eq_seen) {
-			// Separator event trigger: pushing what has been
-			// accumulated, if any
-			if(name -> length > 0) {
-				{ // push tag
-					if(isAGoodIdentifier(name)){
-						const verilogKind kind1 = (verilogKind) lookupKeyword (vStringValue (name), Lang_verilog);
-						if(kind1 == K_UNDEFINED){
-							makeSimpleTag(name, K_LOGIC);
-						}
-					}
-				}
-				vStringClear(name);
-			}
-		} else {
-			// Collecting characters
-			vStringPut (name, c);
-		}
-	}
+/**
+ * A parser for module ports list
+ */
+static void tagModuleSignals(vString *const name){
+	tagCommonAlgoNG (
+		name,
+		//
+		true,      // ()
+		false,     // {}
+		false,     // []
+		//
+		true,      // ','
+		false,     // ';'
+		//
+		-1,        // stc
+		//
+		true,      // lkwd_ena
+		K_LOGIC // gen_tag_kind
+	);
 }
 
-
-
+/**
+ * Trying to detect the following construct:
+ * module some_identifier #(......)(.......)
+ * Where #(...) - list will be parsed in separate, and (....) is to
+ * be also parsed to produce variables.
+ */
 static void tagModule(vString *const name) {
-	
-	/** 
-	 * Trying to detect the following construct:
-	 * module some_identifier #(......)(.......)
-	 * Where #(...) - list will be parsed in separate, and (....) is to
-	 * be also parsed to produce variables.
-	 */
 	int c = vGetc();
 	c = skipWhite(c);
 	if(!readIdentifier(name, c)){
@@ -619,12 +568,11 @@ static void tagModule(vString *const name) {
 			vUngetc (c);
 			return;
 		}else{
-			tagModuleParameterListANSI(name, c);
+			tagModuleParameterListANSI(name);
 			c = vGetc();
 			c = skipWhite(c);
 			if(c == '(') {
-				tagModuleSignals(name, c);
-				vUngetc(c);
+				tagModuleSignals(name);
 				return; /* Success */
 			} else {
 				vUngetc(c);
@@ -632,9 +580,8 @@ static void tagModule(vString *const name) {
 			}
 		}
 	}else if(c == '(') {
-		/* Skip beyond the port list */
-		tagModuleSignals(name, c);
-		vUngetc (c);
+		/* No port list for this module */
+		tagModuleSignals(name);
 		return;
 	} else {
 		/* Something unexpected, stop parsing */
@@ -644,57 +591,26 @@ static void tagModule(vString *const name) {
 }
 
 
-// Tags a comma-separated name list of an abstract something verilogish.
-// @param name - the first actual tag in the list detected by previous stage.
-// @param king - initial tag kind, that triggered the dissection
+/**
+ * Tags a comma-separated name list of an abstract something verilogish.
+ */
 static void tagNameList (const verilogKind kind, vString *const name)
 {
-	vStringClear(name);
-	int c;
-	//
-	unsigned int blvl = 0, cblvl = 0, sqblvl = 0;
-	bool eq_seen = false;
-	bool stop_condition;
-	do{
-		c = vGetc();
+	tagCommonAlgoNG (
+		name,
 		//
-		if(c == '(') blvl += 1;
-		if(c == ')') blvl -= 1;
+		false,     // ()
+		false,     // {}
+		false,     // []
 		//
-		if(c == '{') cblvl += 1;
-		if(c == '}') cblvl -= 1;
+		true,      // ','
+		false,     // ';'
 		//
-		if(c == '[') sqblvl += 1;
-		if(c == ']') sqblvl -= 1;
+		';',       // stc
 		//
-		bool inside_inner_braces = blvl > 0 || cblvl > 0 || sqblvl > 0;
-		
-		if(!inside_inner_braces) {
-			if(c == '=') {
-				eq_seen = true;
-			} else if (c == ',') {
-				eq_seen = false;
-			}
-		}
-		
-		stop_condition = (c == ';');  // semicolon is used as quite reliable condition
-		
-		if(inside_inner_braces || isspace(c) || c == ',' || eq_seen || stop_condition ) {
-			if(name -> length > 0) {
-				// push tag
-				const verilogKind kind1 = (verilogKind) lookupKeyword (vStringValue (name), Lang_verilog);
-				if(kind1 == K_UNDEFINED && isAGoodIdentifier(name)){
-					// A check, that this is not a stray identifier somehow + naming conformance
-					makeSimpleTag(name, kind);
-				}
-				vStringClear(name);
-			}
-		} else {
-			// Collecting characters
-			vStringPut (name, c);
-		}
-		
-	}while(!stop_condition);
+		true,      // lkwd_ena
+		kind       // gen_tag_kind
+	);
 }
 
 
@@ -748,7 +664,7 @@ static void findTag (vString *const name)
 		// This could be a `typedef`ed type, denoted by it's identifier.
 		// Detecting such constructs is impossible without detecting all language keywords,
 		// as otherwise the lists would be full of language constructs and because of false-triggering.
-		
+
 		//
 		// if(isAGoodIdentifier(name)) tagNameList(K_CONSTANT, name);
 	}
