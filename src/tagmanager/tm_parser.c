@@ -428,6 +428,7 @@ static TMParserMapEntry map_VERILOG[] = {
 	{'a', tm_tag_macro_t},
 	{'e', tm_tag_externvar_t},
 	{'f', tm_tag_function_t},
+	{'g', tm_tag_package_t},
 	{'m', tm_tag_class_t},
 	{'n', tm_tag_variable_t},
 	{'p', tm_tag_variable_t},

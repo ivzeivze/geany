@@ -53,6 +53,7 @@ typedef enum {
 	K_TYPEDEF,
 	K_STRUCT,
 	K_UNION,
+	K_PACKAGE,
 	K_OTHER
 } verilogKind;
 
@@ -78,6 +79,7 @@ static kindDefinition VerilogKinds [] = {
  { true, 'd', "typedef",   "typedefs" },
  { true, 's', "struct",    "structs" },
  { true, 'u', "union",     "unions" },
+ { true, 'g', "package",   "packages" },
  { true, 'o', "other",     "other language constructs" }
 };
 
@@ -120,9 +122,12 @@ static keywordTable VerilogKeywordTable [] = {
 	{ "enum",      K_ENUM },
 	{ "struct",    K_STRUCT },
 	{ "union",     K_UNION },
+	{ "package",   K_PACKAGE },
 	// non-functional language constructs, placed here to detectable and thus filterable
 	{ "void",      K_OTHER},
-	{ "packed",    K_OTHER}
+	{ "packed",    K_OTHER},
+	{ "static",    K_OTHER},
+	{ "automatic", K_OTHER}
 };
 
 /*
@@ -141,6 +146,19 @@ static void initialize (const langType language)
 	}
 }
 
+
+// A convenience function to query keyword table for out parser's keywords
+static verilogKind lookupParserKeyword(vString *const name){
+	return (verilogKind) lookupKeyword (vStringValue (name), Lang_verilog);
+}
+
+
+// Checks, if a string is a known keyword
+static bool checkIsKnownKeyword(vString *const name){
+	return K_UNDEFINED != lookupParserKeyword(name);
+}
+
+
 static void vUngetc (int c)
 {
 	Assert (Ungetc == '\0');
@@ -149,6 +167,7 @@ static void vUngetc (int c)
 
 static int vGetc (void)
 {
+	// TODO: consider stripping (* ... *) attributes (pragma-like, may attach to anything)
 	int c;
 	if (Ungetc == '\0')
 		c = getcFromInputFile ();
@@ -265,7 +284,6 @@ static bool readIdentifier (vString *const name, int c)
 	return (bool)(name->length > 0);
 }
 
-
 /**
  * An algorithm for detection of tags in different circumstances,
  * involving a list of tag[=something] with  some separators and an
@@ -351,12 +369,9 @@ static void tagCommonAlgoNG(
 			// accumulated, if any
 			if(name -> length > 0) {
 				if(isAGoodIdentifier(name)){
-					bool tag_kind_check_passed = true;
-					if(lkwd_ena){
-						const verilogKind kind1 = (verilogKind) lookupKeyword (vStringValue (name), Lang_verilog);
-						tag_kind_check_passed = kind1 == K_UNDEFINED;
+					if(!lkwd_ena || !checkIsKnownKeyword(name)){
+						makeSimpleTag(name, gen_tag_kind);
 					}
-					if(tag_kind_check_passed) makeSimpleTag(name, gen_tag_kind);
 				}
 				vStringClear(name);
 			}
@@ -483,7 +498,7 @@ static void tagTypedef(vString *const name){
 	if(!readIdentifier(name, c)){
 		return;
 	}
-	const verilogKind kind = (verilogKind) lookupKeyword (vStringValue (name), Lang_verilog);
+	verilogKind kind = lookupParserKeyword(name);
 	if(kind == K_ENUM){
 		tagEnum(name, true);
 	} else if(kind == K_STRUCT || kind == K_UNION){
@@ -624,10 +639,27 @@ static void tagMacro(vString *const name){
 	// TODO: extend parsing beyond name tag detection!
 }
 
+static void tagPackage(vString *const name){
+	while(1){
+		int c = vGetc();
+		c = skipWhite(c);
+		if(c == ';'){
+			break; // abrupt completion
+		}
+		if(!readIdentifier(name, c)){
+			break; // garbage
+		}
+		if(checkIsKnownKeyword(name)){
+			continue; // skip through possible keywords
+		}
+		makeSimpleTag(name, K_PACKAGE);
+		break;
+	}
+}
 
 static void findTag (vString *const name)
 {
-	const verilogKind kind = (verilogKind) lookupKeyword (vStringValue (name), Lang_verilog);
+	const verilogKind kind = lookupParserKeyword(name);
 	if (kind == K_CONSTANT && vStringItem (name, 0) == '`')
 	{
 		/* Bug #961001: Verilog compiler directives are line-based. */
@@ -655,6 +687,9 @@ static void findTag (vString *const name)
 	else if(kind == K_MACRO) {
 		tagMacro(name);
 	}
+	else if(kind == K_PACKAGE) {
+		tagPackage(name);
+	}
 	else if (kind != K_UNDEFINED)
 	{
 		tagNameList (kind, name);
@@ -663,7 +698,7 @@ static void findTag (vString *const name)
 		//
 		// This could be a `typedef`ed type, denoted by it's identifier.
 		// Detecting such constructs is impossible without detecting all language keywords,
-		// as otherwise the lists would be full of language constructs and because of false-triggering.
+		// as otherwise the lists would be full of language constructs because of false-triggering.
 
 		//
 		// if(isAGoodIdentifier(name)) tagNameList(K_CONSTANT, name);
@@ -703,7 +738,7 @@ static void findVerilogTags (void)
 
 extern parserDefinition* VerilogParser (void)
 {
-	static const char *const extensions [] = { "v", NULL };
+	static const char *const extensions [] = { "v", "sv", NULL };
 	parserDefinition* def = parserNew ("Verilog");
 	def->kindTable  = VerilogKinds;
 	def->kindCount  = ARRAY_SIZE (VerilogKinds);
