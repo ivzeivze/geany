@@ -123,11 +123,218 @@ static keywordTable VerilogKeywordTable [] = {
 	{ "struct",    K_STRUCT },
 	{ "union",     K_UNION },
 	{ "package",   K_PACKAGE },
-	// non-functional language constructs, placed here to detectable and thus filterable
-	{ "void",      K_OTHER},
-	{ "packed",    K_OTHER},
-	{ "static",    K_OTHER},
-	{ "automatic", K_OTHER}
+	//
+	// All the remaining SystemVerilog keywords (see [1], p.1145)
+	{ "accept_on",           K_OTHER },
+	{ "alias",               K_OTHER },
+	{ "always_comb",         K_OTHER },
+	{ "always_ff",           K_OTHER },
+	{ "always",              K_OTHER },
+	{ "always_latch",        K_OTHER },
+	{ "and",                 K_OTHER },
+	{ "assert",              K_OTHER },
+	{ "assign",              K_OTHER },
+	{ "assume",              K_OTHER },
+	{ "automatic",           K_OTHER },
+	{ "before",              K_OTHER },
+	{ "begin",               K_OTHER },
+	{ "bind",                K_OTHER },
+	{ "bins",                K_OTHER },
+	{ "binsof",              K_OTHER },
+	{ "break",               K_OTHER },
+	{ "bufif0",              K_OTHER },
+	{ "bufif1",              K_OTHER },
+	{ "buf",                 K_OTHER },
+	{ "case",                K_OTHER },
+	{ "casex",               K_OTHER },
+	{ "casez",               K_OTHER },
+	{ "cell",                K_OTHER },
+	{ "chandle",             K_OTHER },
+	{ "checker",             K_OTHER },
+	{ "class",               K_OTHER },
+	{ "clocking",            K_OTHER },
+	{ "cmos",                K_OTHER },
+	{ "config",              K_OTHER },
+	{ "const",               K_OTHER },
+	{ "constraint",          K_OTHER },
+	{ "context",             K_OTHER },
+	{ "continue",            K_OTHER },
+	{ "covergroup",          K_OTHER },
+	{ "cover",               K_OTHER },
+	{ "coverpoint",          K_OTHER },
+	{ "cross",               K_OTHER },
+	{ "deassign",            K_OTHER },
+	{ "default",             K_OTHER },
+	{ "defparam",            K_OTHER },
+	{ "design",              K_OTHER },
+	{ "disable",             K_OTHER },
+	{ "dist",                K_OTHER },
+	{ "do",                  K_OTHER },
+	{ "edge",                K_OTHER },
+	{ "else",                K_OTHER },
+	{ "endcase",             K_OTHER },
+	{ "endchecker",          K_OTHER },
+	{ "endclass",            K_OTHER },
+	{ "endclocking",         K_OTHER },
+	{ "endconfig",           K_OTHER },
+	{ "endfunction",         K_OTHER },
+	{ "endgenerate",         K_OTHER },
+	{ "endgroup",            K_OTHER },
+	{ "endinterface",        K_OTHER },
+	{ "end",                 K_OTHER },
+	{ "endmodule",           K_OTHER },
+	{ "endpackage",          K_OTHER },
+	{ "endprimitive",        K_OTHER },
+	{ "endprogram",          K_OTHER },
+	{ "endproperty",         K_OTHER },
+	{ "endsequence",         K_OTHER },
+	{ "endspecify",          K_OTHER },
+	{ "endtable",            K_OTHER },
+	{ "endtask",             K_OTHER },
+	{ "eventually",          K_OTHER },
+	{ "expect",              K_OTHER },
+	{ "export",              K_OTHER },
+	{ "extends",             K_OTHER },
+	{ "extern",              K_OTHER },
+	{ "final",               K_OTHER },
+	{ "first_match",         K_OTHER },
+	{ "force",               K_OTHER },
+	{ "foreach",             K_OTHER },
+	{ "forever",             K_OTHER },
+	{ "forkjoin",            K_OTHER },
+	{ "fork",                K_OTHER },
+	{ "for",                 K_OTHER },
+	{ "generate",            K_OTHER },
+	{ "global",              K_OTHER },
+	{ "highz0",              K_OTHER },
+	{ "highz1",              K_OTHER },
+	{ "iff",                 K_OTHER },
+	{ "if",                  K_OTHER },
+	{ "ifnone",              K_OTHER },
+	{ "ignore_bins",         K_OTHER },
+	{ "illegal_bins",        K_OTHER },
+	{ "implements",          K_OTHER },
+	{ "implies",             K_OTHER },
+	{ "import",              K_OTHER },
+	{ "incdir",              K_OTHER },
+	{ "include",             K_OTHER },
+	{ "initial",             K_OTHER },
+	{ "inside",              K_OTHER },
+	{ "instance",            K_OTHER },
+	{ "interconnect",        K_OTHER },
+	{ "interface",           K_OTHER },
+	{ "intersect",           K_OTHER },
+	{ "join_any",            K_OTHER },
+	{ "join",                K_OTHER },
+	{ "join_none",           K_OTHER },
+	{ "large",               K_OTHER },
+	{ "let",                 K_OTHER },
+	{ "liblist",             K_OTHER },
+	{ "library",             K_OTHER },
+	{ "local",               K_OTHER },
+	{ "macromodule",         K_OTHER },
+	{ "matches",             K_OTHER },
+	{ "medium",              K_OTHER },
+	{ "modport",             K_OTHER },
+	{ "nand",                K_OTHER },
+	{ "negedge",             K_OTHER },
+	{ "nettype",             K_OTHER },
+	{ "new",                 K_OTHER },
+	{ "nexttime",            K_OTHER },
+	{ "nmos",                K_OTHER },
+	{ "nor",                 K_OTHER },
+	{ "noshowcancelled",     K_OTHER },
+	{ "notif0",              K_OTHER },
+	{ "notif1",              K_OTHER },
+	{ "not",                 K_OTHER },
+	{ "null",                K_OTHER },
+	{ "or",                  K_OTHER },
+	{ "packed",              K_OTHER },
+	{ "pmos",                K_OTHER },
+	{ "posedge",             K_OTHER },
+	{ "primitive",           K_OTHER },
+	{ "priority",            K_OTHER },
+	{ "program",             K_OTHER },
+	{ "property",            K_OTHER },
+	{ "protected",           K_OTHER },
+	{ "pull0",               K_OTHER },
+	{ "pull1",               K_OTHER },
+	{ "pulldown",            K_OTHER },
+	{ "pullup",              K_OTHER },
+	{ "pulsestyle_ondetect", K_OTHER },
+	{ "pulsestyle_onevent",  K_OTHER },
+	{ "pure",                K_OTHER },
+	{ "randcase",            K_OTHER },
+	{ "randc",               K_OTHER },
+	{ "rand",                K_OTHER },
+	{ "randsequence",        K_OTHER },
+	{ "rcmos",               K_OTHER },
+	{ "ref",                 K_OTHER },
+	{ "reject_on",           K_OTHER },
+	{ "release",             K_OTHER },
+	{ "repeat",              K_OTHER },
+	{ "restrict",            K_OTHER },
+	{ "return",              K_OTHER },
+	{ "rnmos",               K_OTHER },
+	{ "rpmos",               K_OTHER },
+	{ "rtranif0",            K_OTHER },
+	{ "rtranif1",            K_OTHER },
+	{ "rtran",               K_OTHER },
+	{ "s_always",            K_OTHER },
+	{ "scalared",            K_OTHER },
+	{ "sequence",            K_OTHER },
+	{ "s_eventually",        K_OTHER },
+	{ "shortreal",           K_OTHER },
+	{ "showcancelled",       K_OTHER },
+	{ "signed",              K_OTHER },
+	{ "small",               K_OTHER },
+	{ "s_nexttime",          K_OTHER },
+	{ "soft",                K_OTHER },
+	{ "solve",               K_OTHER },
+	{ "specify",             K_OTHER },
+	{ "static",              K_OTHER },
+	{ "string",              K_OTHER },
+	{ "strong0",             K_OTHER },
+	{ "strong1",             K_OTHER },
+	{ "strong",              K_OTHER },
+	{ "s_until",             K_OTHER },
+	{ "s_until_with",        K_OTHER },
+	{ "super",               K_OTHER },
+	{ "sync_accept_on",      K_OTHER },
+	{ "sync_reject_on",      K_OTHER },
+	{ "table",               K_OTHER },
+	{ "tagged",              K_OTHER },
+	{ "this",                K_OTHER },
+	{ "throughout",          K_OTHER },
+	{ "timeprecision",       K_OTHER },
+	{ "timeunit",            K_OTHER },
+	{ "tranif0",             K_OTHER },
+	{ "tranif1",             K_OTHER },
+	{ "tran",                K_OTHER },
+	{ "type",                K_OTHER },
+	{ "unique0",             K_OTHER },
+	{ "unique",              K_OTHER },
+	{ "unsigned",            K_OTHER },
+	{ "until",               K_OTHER },
+	{ "until_with",          K_OTHER },
+	{ "untyped",             K_OTHER },
+	{ "use",                 K_OTHER },
+	{ "uwire",               K_OTHER },
+	{ "var",                 K_OTHER },
+	{ "vectored",            K_OTHER },
+	{ "virtual",             K_OTHER },
+	{ "void",                K_OTHER },
+	{ "wait",                K_OTHER },
+	{ "wait_order",          K_OTHER },
+	{ "weak0",               K_OTHER },
+	{ "weak1",               K_OTHER },
+	{ "weak",                K_OTHER },
+	{ "while",               K_OTHER },
+	{ "wildcard",            K_OTHER },
+	{ "within",              K_OTHER },
+	{ "with",                K_OTHER },
+	{ "xnor",                K_OTHER },
+	{ "xor",                 K_OTHER }
 };
 
 /*
@@ -660,19 +867,7 @@ static void tagPackage(vString *const name){
 static void findTag (vString *const name)
 {
 	const verilogKind kind = lookupParserKeyword(name);
-	if (kind == K_CONSTANT && vStringItem (name, 0) == '`')
-	{
-		/* Bug #961001: Verilog compiler directives are line-based. */
-		int c = skipWhite (vGetc ());
-		readIdentifier (name, c);
-		makeSimpleTag (name, kind);
-		/* Skip the rest of the line. */
-		do {
-			c = vGetc();
-		} while (c != '\n');
-		vUngetc (c);
-	}
-	else if(kind == K_MODULE)
+	if(kind == K_MODULE)
 	{
 		tagModule(name);
 	}
@@ -684,24 +879,30 @@ static void findTag (vString *const name)
 	{
 		tagTypedef(name);
 	}
-	else if(kind == K_MACRO) {
+	else if(kind == K_MACRO)
+	{
 		tagMacro(name);
 	}
-	else if(kind == K_PACKAGE) {
+	else if(kind == K_PACKAGE)
+	{
 		tagPackage(name);
 	}
-	else if (kind != K_UNDEFINED)
+	else if(kind == K_OTHER)
 	{
+		// Doing nothing with these kinds, as they are only declared to
+		// be recognizable as keywords, so as not to make their way into
+		// the tags list.
+	}
+	else if(kind != K_UNDEFINED) {
+		// All the remaining normal tag types fall here. Applying a
+		// generic comma-separated variable list detection algorithm.
 		tagNameList (kind, name);
 	} else {
-		// TODO
-		//
-		// This could be a `typedef`ed type, denoted by it's identifier.
-		// Detecting such constructs is impossible without detecting all language keywords,
-		// as otherwise the lists would be full of language constructs because of false-triggering.
-
-		//
-		// if(isAGoodIdentifier(name)) tagNameList(K_CONSTANT, name);
+		// Likely a `typedef`ed type, denoted by it's identifier.
+		// Without having a list of all such declared types, we cal only
+		// assume, that every such construct is a kind of variable
+		// declaration.
+		if(isAGoodIdentifier(name)) tagNameList(K_CONSTANT, name);
 	}
 }
 
