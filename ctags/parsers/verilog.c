@@ -696,6 +696,24 @@ static void tagStructAndUnion(const verilogKind kind, vString *const name){
 }
 
 
+static void tagPrimitiveType(vString *const name){
+	tagCommonAlgoNG (
+		name,
+		//
+		false,     // ()
+		false,     // {}
+		false,     // []
+		//
+		true,      // ','
+		false,     // ';'
+		//
+		';',       // stc
+		//
+		true,      // lkwd_ena
+		K_CONSTANT // gen_tag_kind
+	);
+}
+
 
 static void tagTypedef(vString *const name){
 	int c;
@@ -710,6 +728,8 @@ static void tagTypedef(vString *const name){
 		tagEnum(name, true);
 	} else if(kind == K_STRUCT || kind == K_UNION){
 		tagStructAndUnion(kind, name);
+	} else if(kind != K_UNDEFINED){
+		tagPrimitiveType(name);
 	}
 }
 
